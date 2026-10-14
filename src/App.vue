@@ -1,86 +1,103 @@
 <template>
-
-  <div id="header">
-    <h1>Monthly Salary & Expense Tracker</h1>
-    <label for="months">Month:</label>
-    <input type="month" id="months" v-model="selectedMonth" />
-    <p v-if="selectedMonth === ''">Select a month</p>
-  </div>
-  <div id="main">
-    <div>
-      <label for="salary">Salary:</label>
-      <input type="number" id="salary" v-model.number="monthlySalary" min="0" :disabled="selectedMonth === ''" />
-      <p v-if="!isSalaryValid && selectedMonth !== ''">Salary should be a number greater than or equal to zero</p>
+  <div class="tracker-page">
+    <div id="header">
+      <h1>Monthly Salary & Expense Tracker</h1>
+      <label for="months">Month:</label>
+      <input type="month" id="months" v-model="selectedMonth" />
+      <p v-if="selectedMonth === ''">Select a month</p>
     </div>
-    <div>Expenses:
-      <span id="expenses">{{ totalExpenses }}</span>
+    <div id="main">
+      <div>
+        <label for="salary">Salary:</label>
+        <input type="number" id="salary" v-model.number="monthlySalary" min="0" :disabled="selectedMonth === ''"
+          step="1" />
+        <p v-if="!isSalaryValid && selectedMonth !== ''" class="error-message">Salary should be a whole number greater
+          than or
+          equal to zero</p>
+      </div>
+      <div>Expenses:
+        <span id="expenses">{{ formatAmount(totalExpenses) }}</span>
+      </div>
+      <div>Balance:
+        <p v-if="remainingSalary === null">Unavailable</p>
+        <span id="balance" v-else>{{ formatAmount(remainingSalary) }}</span>
+      </div>
+      <p v-if="storageError" role="alert" class="error-message">{{ storageError }}</p>
     </div>
-    <div>Balance:
-      <p v-if="remainingSalary === null">Check salary again</p>
-      <span id="balance" v-else>{{ remainingSalary }}</span>
+
+    <div id="spending-overall">
+      <span>Spending Overview</span>
+      <!-- Below image is just permanent shoing a pie chart of spending -->
+      <!-- <img src="./assets/graph.png" alt="graph" /> -->
     </div>
-    <p v-if="storageError" role="alert">{{ storageError }}</p>
-  </div>
 
-  <div id="spending-overall">
-    <span>Spending Overview</span>
-    <!-- Below image is just permanent shoing a pie chart of spending -->
-    <!-- <img src="./assets/graph.png" alt="graph" /> -->
-  </div>
+    <div id="expense-list">
+      <h2>Expenses</h2>
+      <p v-if="monthlyExpenses.length === 0">No expenses yet</p>
+      <div class="table scroll" v-else>
+        <table id="expense-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Category</th>
+              <th>Description</th>
+              <th>Amount</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Expense rows will be dynamically added here -->
+            <tr v-for="expense in monthlyExpenses" :key="expense.id">
+              <td>{{ expense.date }}</td>
+              <td>{{ expense.category }}</td>
+              <td>{{ expense.description }}</td>
+              <td>{{ formatAmount(expense.amount) }}</td>
+              <td>
+                <input type="button" value="Delete" @click="deleteExpense(expense.id)" />
+                <input type="button" value="Edit" @click="startEditExpense(expense.id)" />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-  <div id="expense-list">
-    <h2>Expenses</h2>
-    <p v-if="monthlyExpenses.length === 0">No expenses yet</p>
-    <table id="expense-table" border="1" v-else>
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Category</th>
-          <th>Description</th>
-          <th>Amount</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Expense rows will be dynamically added here -->
-        <tr v-for="expense in monthlyExpenses" :key="expense.id">
-          <td>{{ expense.date }}</td>
-          <td>{{ expense.category }}</td>
-          <td>{{ expense.description }}</td>
-          <td>{{ expense.amount }}</td>
-          <td>
-            <input type="button" value="Delete" @click="deleteExpense(expense.id)" />
-            <input type="button" value="Edit" @click="startEditExpense(expense.id)" />
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-  <div id="add-expense-form">
-    <h2>{{ editingExpenseId !== null ? 'Edit Expense' : 'Add Expense' }}</h2>
-    <p v-if="expenseError">{{ expenseError }}</p>
-    <form @submit.prevent="saveExpense">
-      <label for="date">Date:</label>
-      <input type="date" id="date" name="date" required v-model="newExpense.date" />
-      <label for="category">Category:</label>
-      <select id="category" name="category" required v-model="newExpense.category">
-        <option value="" disabled>
-          Select Category
-        </option>
-        <option v-for="category in categories" :key="category" :value="category">
-          {{ category }}
-        </option>
-      </select>
-      <label for="description">Description:</label>
-      <input type="text" id="description" name="description" required v-model="newExpense.description" />
-      <label for="amount">Amount:</label>
-      <input type="number" id="amount" name="amount" required v-model.number="newExpense.amount" />
-      <input type="submit" :value="editingExpenseId !== null ? 'Save Changes' : 'Add Expense'" />
-      <input type="button" value="Cancel Edit" v-if="editingExpenseId !== null" @click="cancelEdit" />
-    </form>
-  </div>
-  <div id="last-update">
-    <span>Last Update: 2026-10-01 12:00 PM</span>
+    <div id="add-expense-form">
+      <h2>{{ editingExpenseId !== null ? 'Edit Expense' : 'Add Expense' }}</h2>
+      <p v-if="expenseError" class="error-message">{{ expenseError }}</p>
+      <form @submit.prevent="saveExpense">
+        <div class="form-field">
+          <label for="date">Date:</label>
+          <input type="date" id="date" name="date" required v-model="newExpense.date" />
+        </div>
+        <div class="form-field">
+          <label for="category">Category:</label>
+          <select id="category" name="category" required v-model="newExpense.category">
+            <option value="" disabled>
+              Select Category
+            </option>
+            <option v-for="category in categories" :key="category" :value="category">
+              {{ category }}
+            </option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="description">Description:</label>
+          <input type="text" id="description" name="description" required v-model="newExpense.description" />
+        </div>
+        <div class="form-field">
+          <label for="amount">Amount:</label>
+          <input type="number" id="amount" name="amount" required v-model.number="newExpense.amount" step="1" />
+        </div>
+        <div class="form-actions">
+          <input type="submit" :value="editingExpenseId !== null ? 'Save Changes' : 'Add Expense'" />
+          <input type="button" value="Cancel Edit" v-if="editingExpenseId !== null" @click="cancelEdit" />
+        </div>
+      </form>
+    </div>
+    <div id="last-update">
+      <span>Last Update: 2026-10-01 12:00 PM</span>
+    </div>
   </div>
 </template>
 
@@ -101,6 +118,11 @@ export default defineComponent({
 
   setup() {
 
+    const amountFormatter = new Intl.NumberFormat('ja-JP', {
+      style: 'currency',
+      currency: 'JPY',
+    })
+
     const categories: string[] = [
       'Food',
       'Transportation',
@@ -115,7 +137,7 @@ export default defineComponent({
 
     const expenseError = ref<string>('')
 
-    const selectedMonth = ref<string>('2026-11')
+    const selectedMonth = ref<string>('2026-10')
 
     const salariesByMonth = reactive<Record<string, number>>(
       {
@@ -134,7 +156,7 @@ export default defineComponent({
         }
         if (typeof value === 'number') {
           salariesByMonth[selectedMonth.value] = value
-          if (Number.isFinite(value) && value >= 0) {
+          if (Number.isSafeInteger(value) && value >= 0) {
             saveData()
           }
         } else if (value === '') {
@@ -200,7 +222,7 @@ export default defineComponent({
     })
 
     const isSalaryValid = computed(() => {
-      if (typeof monthlySalary.value === 'number' && Number.isFinite(monthlySalary.value) && monthlySalary.value >= 0) {
+      if (typeof monthlySalary.value === 'number' && Number.isSafeInteger(monthlySalary.value) && monthlySalary.value >= 0) {
         return true
       } else {
         return false
@@ -217,6 +239,10 @@ export default defineComponent({
         }
       } return null;
     })
+
+    function formatAmount(amount: number) {
+      return amountFormatter.format(amount)
+    }
 
     function deleteExpense(id: number) {
       const index = expenses.findIndex(expense => expense.id === id);
@@ -252,8 +278,7 @@ export default defineComponent({
         !newExpense.description.trim() ||
         !(newExpense.amount > 0) ||
         typeof newExpense.amount !== 'number' ||
-        // Finite-number check
-        !Number.isFinite(newExpense.amount)
+        !Number.isSafeInteger(newExpense.amount)
       ) {
         expenseError.value = 'Fields should not be blank. Amount must be greater than 0';
         return;
@@ -298,7 +323,7 @@ export default defineComponent({
       storageError.value = ''
 
       for (const salary of Object.values(salariesByMonth)) {
-        if (!(typeof salary === 'number') || !(Number.isFinite(salary)) || salary < 0) {
+        if (!(typeof salary === 'number') || !(Number.isSafeInteger(salary)) || salary < 0) {
           storageError.value = 'Changes could not be saved. Correct invalid salaries first.'
           console.log('Rejected saved salary', salary)
           return
@@ -340,7 +365,7 @@ export default defineComponent({
         const loadedSalaries: Record<string, number> = {}
 
         for (const [month, salary] of Object.entries(parsedData.salariesByMonth)) {
-          if (!(typeof salary === 'number') || !(Number.isFinite(salary)) || salary < 0) {
+          if (!(typeof salary === 'number') || !(Number.isSafeInteger(salary)) || salary < 0) {
             storageError.value = 'Saved data is invalid and could not be loaded.';
             console.log('Rejected saved salary')
             return
@@ -366,7 +391,7 @@ export default defineComponent({
             console.log('Expens field is missing', item)
             return
           }
-          if (typeof item.amount !== 'number' || !(Number.isFinite(item.amount)) || item.amount <= 0) {
+          if (typeof item.amount !== 'number' || !(Number.isSafeInteger(item.amount)) || item.amount <= 0) {
             storageError.value = 'Saved data is invalid and could not be loaded.';
             return
           }
@@ -457,6 +482,7 @@ export default defineComponent({
       totalExpenses,
       expenses,
       newExpense,
+      formatAmount,
       saveExpense,
       startEditExpense,
       deleteExpense,
@@ -468,4 +494,126 @@ export default defineComponent({
 
 </script>
 
-<style scoped></style>
+<style scoped>
+.tracker-page {
+  max-width: 1000px;
+  margin-inline: auto;
+  padding: 24px 16px;
+}
+
+#main {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-block: 30px;
+}
+
+#main>p {
+  grid-column: 1 / -1;
+}
+
+.error-message {
+  color: #b42318;
+  margin-block: 8px;
+}
+
+#add-expense-form form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px
+}
+
+.form-field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.form-field input,
+.form-field select {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid #044692;
+  border-radius: 4px;
+  font: inherit;
+}
+
+.form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px
+}
+
+#expense-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#expense-table th,
+#expense-table td {
+  padding: 8px;
+  border-bottom: 1px solid #d1d5db;
+  text-align: left;
+}
+
+#expense-table th:nth-child(4),
+#expense-table td:nth-child(4) {
+  text-align: right;
+}
+
+.form-actions input {
+  padding: auto;
+  font: inherit;
+  border: 1px solid;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.form-actions input[type="submit"] {
+  background-color: #286dbb;
+  font: inherit;
+  color: rgb(230, 234, 236)
+}
+
+.form-actions input[type="submit"]:focus-visible {
+  outline: 2px solid #286dbb;
+  outline-offset: 2px;
+}
+
+.form-actions input[type="button"] {
+  background-color: #e0000b;
+  font: inherit;
+  color: rgb(230, 234, 236)
+}
+
+.form-actions input[type="button"]:focus-visible {
+  outline: 2px solid #e0000b;
+  outline-offset: 2px;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+#expense-table {
+  min-width: 600px;
+}
+
+
+@media (max-width: 600px) {
+  #main {
+    grid-template-columns: 1fr;
+    padding: 16px;
+    column-gap: 24px;
+    row-gap: 12px;
+  }
+
+  #add-expense-form form {
+    grid-template-columns: 1fr;
+  }
+
+}
+</style>
