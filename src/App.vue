@@ -32,7 +32,9 @@
         <li v-for="(total, category) in categoryTotals" :key="category">
           {{ category }} {{ formatAmount(total) }} {{ categoryPercentage(total).toFixed(1) + '%' }}
           <div class="category-bar" aria-hidden="true">
-            <div class="category-bar-fill" :style="{ width: categoryPercentage(total) + '%' }"></div>
+            <div class="category-bar-fill"
+              :style="{ width: categoryPercentage(total) + '%', backgroundColor: categoryColors[category] ?? '#6b7280' }">
+            </div>
           </div>
         </li>
       </ul>
@@ -141,6 +143,17 @@ export default defineComponent({
       'Insurance',
       'Others'
     ]
+
+    const categoryColors: Record<string, string> = {
+      Food: '#F5CC27',
+      Transportation: '#27F2F5',
+      Housing: '#F78B8B',
+      Utilities: '#2768F5',
+      Entertainment: '#580BA3',
+      Insurance: '#630419',
+      Others: '#5D4B66'
+
+    }
 
     const storageError = ref<string>('')
 
@@ -496,6 +509,7 @@ export default defineComponent({
 
     return {
       categories,
+      categoryColors,
       selectedMonth,
       expenseError,
       storageError,
