@@ -107,7 +107,7 @@
       </form>
     </div>
     <div id="last-update">
-      <span>Last Update: 2026-10-01 12:00 PM</span>
+      <p>Last Update: {{ lastUpdated !== null ? formatLastUpdated(lastUpdated) : 'Not saved yet' }} </p>
     </div>
   </div>
 </template>
@@ -125,7 +125,6 @@ interface Expense {
 
 export default defineComponent({
   name: 'App',
-
 
   setup() {
 
@@ -160,6 +159,8 @@ export default defineComponent({
     const expenseError = ref<string>('')
 
     const selectedMonth = ref<string>('2026-10')
+
+    const lastUpdated = ref<string | null>(null)
 
     const salariesByMonth = reactive<Record<string, number>>(
       {
@@ -283,6 +284,11 @@ export default defineComponent({
 
     }
 
+    function formatLastUpdated(timestamp: string) {
+      const date = new Date(timestamp)
+      return date.toLocaleString('ja-JP')
+    }
+
     function deleteExpense(id: number) {
       const index = expenses.findIndex(expense => expense.id === id);
       if (index !== -1) {
@@ -355,10 +361,6 @@ export default defineComponent({
 
     function saveData() {
 
-      const dataUse = {
-        expenses,
-        salariesByMonth
-      }
       storageError.value = ''
 
       for (const salary of Object.values(salariesByMonth)) {
@@ -368,9 +370,15 @@ export default defineComponent({
           return
         }
       }
-
+      const savedAt: string = new Date().toISOString();
+      const dataUse = {
+        expenses,
+        salariesByMonth,
+        lastUpdated: savedAt
+      }
       try {
-        localStorage.setItem('monthly-expense-tracker', JSON.stringify(dataUse))
+        localStorage.setItem('monthly-expense-tracker', JSON.stringify(dataUse));
+        lastUpdated.value = savedAt;
       } catch (error) {
         storageError.value = 'Changes could not be saved. They may be lost after refreshing.'
         console.error('Could not save tracker data.', error);
@@ -379,11 +387,13 @@ export default defineComponent({
 
     function loadData() {
       try {
+
         const result = localStorage.getItem('monthly-expense-tracker')
         if (result === null) {
           return
         }
         const parsedData: unknown = JSON.parse(result)
+
         if (typeof parsedData !== 'object' || parsedData === null || Array.isArray(parsedData)) {
           storageError.value = 'Saved data is invalid and could not be loaded.';
           return;
@@ -415,6 +425,25 @@ export default defineComponent({
           }
           loadedSalaries[month] = salary
         }
+
+        let loadedLastUpdated: string | null = null;
+
+        if ('lastUpdated' in parsedData) {
+          if (typeof parsedData.lastUpdated !== 'string') {
+            storageError.value = 'Saved data is invalid and could not be loaded.';
+            return;
+          }
+
+          const savedDate = new Date(parsedData.lastUpdated);
+
+          if (Number.isNaN(savedDate.getTime())) {
+            storageError.value = 'Saved data is invalid and could not be loaded.';
+            return;
+          }
+
+          loadedLastUpdated = parsedData.lastUpdated;
+        }
+
         const loadedExpenses: Expense[] = []
         const seenIds = new Set<number>()
 
@@ -479,6 +508,7 @@ export default defineComponent({
         }
         Object.assign(salariesByMonth, loadedSalaries)
         expenses.splice(0, expenses.length, ...loadedExpenses);
+        lastUpdated.value = loadedLastUpdated;
         console.log('loadedSalaries', loadedSalaries)
         console.log('loadedExpenses', loadedExpenses)
         console.log('ParsedData', parsedData)
@@ -510,6 +540,7 @@ export default defineComponent({
     return {
       categories,
       categoryColors,
+      lastUpdated,
       selectedMonth,
       expenseError,
       storageError,
@@ -525,6 +556,7 @@ export default defineComponent({
       newExpense,
       formatAmount,
       categoryPercentage,
+      formatLastUpdated,
       saveExpense,
       startEditExpense,
       deleteExpense,
