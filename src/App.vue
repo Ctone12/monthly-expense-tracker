@@ -26,7 +26,16 @@
     </div>
 
     <div id="spending-overall">
-      <span>Spending Overview</span>
+      <h2>Spending Overview</h2>
+      <p v-if="monthlyExpenses.length === 0">No spending for this month.</p>
+      <ul class="category-list" v-else>
+        <li v-for="(total, category) in categoryTotals" :key="category">
+          {{ category }} {{ formatAmount(total) }} {{ categoryPercentage(total).toFixed(1) + '%' }}
+          <div class="category-bar" aria-hidden="true">
+            <div class="category-bar-fill" :style="{ width: categoryPercentage(total) + '%' }"></div>
+          </div>
+        </li>
+      </ul>
       <!-- Below image is just permanent shoing a pie chart of spending -->
       <!-- <img src="./assets/graph.png" alt="graph" /> -->
     </div>
@@ -34,7 +43,7 @@
     <div id="expense-list">
       <h2>Expenses</h2>
       <p v-if="monthlyExpenses.length === 0">No expenses yet</p>
-      <div class="table scroll" v-else>
+      <div class="table-scroll" v-else>
         <table id="expense-table">
           <thead>
             <tr>
@@ -204,7 +213,6 @@ export default defineComponent({
       },
     ])
 
-
     const monthlyExpenses = computed(() => {
       return expenses.filter(expense => {
         const expenseMonth = expense.date.slice(0, 7);
@@ -240,8 +248,26 @@ export default defineComponent({
       } return null;
     })
 
+    const categoryTotals = computed(() => {
+      const totals: Record<string, number> = {}
+      for (const expense of monthlyExpenses.value) {
+        const currentTotal = totals[expense.category] ?? 0;
+        totals[expense.category] = currentTotal + expense.amount
+      }
+      return totals
+    })
+
     function formatAmount(amount: number) {
       return amountFormatter.format(amount)
+    }
+
+    function categoryPercentage(total: number) {
+      if (totalExpenses.value === 0) {
+        return 0
+      }
+      // console.log(total / totalExpenses.value * 100)
+      return total / totalExpenses.value * 100
+
     }
 
     function deleteExpense(id: number) {
@@ -476,6 +502,7 @@ export default defineComponent({
       monthlySalary,
       salariesByMonth,
       remainingSalary,
+      categoryTotals,
       monthlyExpenses,
       isSalaryValid,
       editingExpenseId,
@@ -483,6 +510,7 @@ export default defineComponent({
       expenses,
       newExpense,
       formatAmount,
+      categoryPercentage,
       saveExpense,
       startEditExpense,
       deleteExpense,
@@ -565,7 +593,7 @@ export default defineComponent({
 }
 
 .form-actions input {
-  padding: auto;
+  padding: 10px;
   font: inherit;
   border: 1px solid;
   border-radius: 4px;
@@ -600,6 +628,22 @@ export default defineComponent({
 
 #expense-table {
   min-width: 600px;
+}
+
+.category-list {
+  list-style: none;
+  padding: 0;
+}
+
+.category-bar {
+  height: 10px;
+  background-color: #e5e7eb;
+  margin-block: 6px 16px;
+}
+
+.category-bar-fill {
+  height: 100%;
+  background-color: #167047;
 }
 
 
