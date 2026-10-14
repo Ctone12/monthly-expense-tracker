@@ -62,8 +62,8 @@
               <td>{{ expense.description }}</td>
               <td>{{ formatAmount(expense.amount) }}</td>
               <td>
-                <input type="button" value="Delete" @click="deleteExpense(expense.id)" />
-                <input type="button" value="Edit" @click="startEditExpense(expense.id)" />
+                <input type="button" value="Delete" class="table-row-delete" @click="deleteExpense(expense.id)" />
+                <input type="button" value="Edit" class="table-row-edit" @click="startEditExpense(expense.id)" />
               </td>
             </tr>
           </tbody>
@@ -590,6 +590,26 @@ export default defineComponent({
 #expense-table th:nth-child(4),
 #expense-table td:nth-child(4) {
   text-align: right;
+}
+
+.table-row-delete {
+  background-color: #e0000b;
+  color: rgb(230, 234, 236);
+  padding: 5px;
+  font: inherit;
+  border: 1px solid;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.table-row-edit {
+  background-color: #286dbb;
+  color: rgb(230, 234, 236);
+  padding: 5px;
+  font: inherit;
+  border: 1px solid;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 .form-actions input {
