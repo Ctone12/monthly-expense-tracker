@@ -1,42 +1,64 @@
-# .
+# Monthly Salary & Expense Tracker
 
-This template should help get you started developing with Vue 3 in Vite.
+A personal application for tracking monthly salary and expenses in Japanese yen. Built as a learning project to practice Vue 3, TypeScript, and Git.
 
-## Recommended IDE Setup
+## Technology
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+- Vue 3 with the Composition API
+- TypeScript
+- HTML and CSS
+- Vite
 
-## Recommended Browser Setup
+## Features
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+- Separate salaries for each month
+- Add, edit, and delete expenses
+- Expense categories and monthly filtering
+- Total expenses and remaining salary
+- Category spending totals, percentages, and colored bars
+- Japanese yen formatting and whole-yen validation
+- localStorage persistence with saved-data validation
+- Last successful save timestamp
+- Responsive layouts and keyboard focus indicators
 
-## Type Support for `.vue` Imports in TS
+## Run Locally
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
+Install dependencies:
 
 ```sh
 npm install
 ```
 
-### Compile and Hot-Reload for Development
+Start the development server:
 
 ```sh
 npm run dev
 ```
 
-### Type-Check, Compile and Minify for Production
+Open the local URL printed in the terminal.
+
+## Checks
+
+Check TypeScript types:
+
+```sh
+npm run type-check
+```
+
+Create a production build, including type-checking:
 
 ```sh
 npm run build
 ```
+
+## Limitations
+
+- Data is stored in the current browser’s localStorage for the site address.
+- Clearing that browser storage removes the saved data.
+- Data does not sync between browsers or devices.
+- There is no backend, database, or authentication.
+- Last Update shows the last successful local save, not a live clock.
+
+## Learning Goals
+
+Practice reactive state, computed values, watchers, forms, TypeScript interfaces, data validation, browser storage, responsive CSS, and Git.
