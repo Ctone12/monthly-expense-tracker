@@ -22,6 +22,7 @@
         <p v-if="remainingSalary === null">Unavailable</p>
         <span id="balance" v-else>{{ formatAmount(remainingSalary) }}</span>
       </div>
+      <input type="button" value="Retry loading" v-if="loadFailed" @click="loadData()" />
       <p v-if="storageError" role="alert" class="error-message">{{ storageError }}</p>
     </div>
 
@@ -364,6 +365,8 @@ export default defineComponent({
         // throw new Error('Test storage failure');
         const result = localStorage.getItem('monthly-expense-tracker')
         if (result === null) {
+          loadFailed.value = false;
+          storageError.value = ''
           return
         }
         const parsedData: unknown = JSON.parse(result)
@@ -501,6 +504,8 @@ export default defineComponent({
         Object.assign(salariesByMonth, loadedSalaries)
         expenses.splice(0, expenses.length, ...loadedExpenses);
         lastUpdated.value = loadedLastUpdated;
+        loadFailed.value = false
+        storageError.value = ''
         console.log('loadedSalaries', loadedSalaries)
         console.log('loadedExpenses', loadedExpenses)
         console.log('ParsedData', parsedData)
@@ -536,6 +541,7 @@ export default defineComponent({
       lastUpdated,
       selectedMonth,
       expenseError,
+      loadFailed,
       storageError,
       monthlySalary,
       salariesByMonth,
@@ -552,6 +558,7 @@ export default defineComponent({
       formatLastUpdated,
       saveExpense,
       startEditExpense,
+      loadData,
       deleteExpense,
       cancelEdit
     }
