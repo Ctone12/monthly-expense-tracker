@@ -360,7 +360,6 @@ export default defineComponent({
     }
 
     function saveData() {
-
       storageError.value = ''
 
       for (const salary of Object.values(salariesByMonth)) {
@@ -377,6 +376,7 @@ export default defineComponent({
         lastUpdated: savedAt
       }
       try {
+        // throw new Error('Test storage failure');
         localStorage.setItem('monthly-expense-tracker', JSON.stringify(dataUse));
         lastUpdated.value = savedAt;
       } catch (error) {
@@ -387,7 +387,7 @@ export default defineComponent({
 
     function loadData() {
       try {
-
+        // throw new Error('Test storage failure');
         const result = localStorage.getItem('monthly-expense-tracker')
         if (result === null) {
           return
@@ -633,6 +633,16 @@ export default defineComponent({
   text-align: left;
 }
 
+#expense-table td:nth-child(3) {
+  overflow-wrap: anywhere;
+}
+
+#expense-table td:nth-child(1),
+#expense-table td:nth-child(5) {
+  white-space: nowrap;
+}
+
+
 #expense-table th:nth-child(4),
 #expense-table td:nth-child(4) {
   text-align: right;
@@ -642,20 +652,32 @@ export default defineComponent({
   background-color: #e0000b;
   color: rgb(230, 234, 236);
   padding: 5px;
+  margin-right: 5px;
   font: inherit;
   border: 1px solid;
   border-radius: 4px;
   cursor: pointer;
 }
 
+.table-row-delete:focus-visible {
+  outline: 2px solid #e0000b;
+  outline-offset: 2px;
+}
+
 .table-row-edit {
   background-color: #286dbb;
   color: rgb(230, 234, 236);
   padding: 5px;
+  margin-left: 5px;
   font: inherit;
   border: 1px solid;
   border-radius: 4px;
   cursor: pointer;
+}
+
+.table-row-edit:focus-visible {
+  outline: 2px solid #286dbb;
+  outline-offset: 2px;
 }
 
 .form-actions input {
