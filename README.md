@@ -20,6 +20,7 @@ A personal application for tracking monthly salary and expenses in Japanese yen.
 - localStorage persistence with saved-data validation
 - Last successful save timestamp
 - Responsive layouts and keyboard focus indicators
+- Retrying failed loads and blocking saves until recovery succeeds
 
 ## Run Locally
 
@@ -58,6 +59,7 @@ npm run build
 - Data does not sync between browsers or devices.
 - There is no backend, database, or authentication.
 - Last Update shows the last successful local save, not a live clock.
+- LocalStorage is still not backuped no import/export yet.
 
 ## Learning Goals
 
