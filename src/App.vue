@@ -2,27 +2,31 @@
   <div class="tracker-page">
     <div id="header">
       <h1>Monthly Salary & Expense Tracker</h1>
-      <label for="months">Month:</label>
-      <input type="month" id="months" v-model="selectedMonth" />
-      <p v-if="selectedMonth === ''">Select a month</p>
+      <div class="month-control">
+        <label for="months">Month:</label>
+        <input type="month" id="months" v-model="selectedMonth" />
+        <p v-if="selectedMonth === ''">Select a month</p>
+      </div>
     </div>
     <div id="main">
       <div>
-        <label for="salary">Salary:</label>
+        <label class="summary-label" for="salary">Salary:</label>
         <input type="number" id="salary" v-model.number="monthlySalary" min="0" :disabled="selectedMonth === ''"
           step="1" />
         <p v-if="!isSalaryValid && selectedMonth !== ''" class="error-message">Salary should be a whole number greater
           than or
           equal to zero</p>
       </div>
-      <div>Expenses:
-        <span id="expenses">{{ formatAmount(totalExpenses) }}</span>
+      <div>
+        <span class="summary-label">Expenses:</span>
+        <span class="summary-value" id="expenses">{{ formatAmount(totalExpenses) }}</span>
       </div>
-      <div>Balance:
+      <div>
+        <span class="summary-label">Balance:</span>
         <p v-if="remainingSalary === null">Unavailable</p>
-        <span id="balance" v-else>{{ formatAmount(remainingSalary) }}</span>
+        <span class="summary-value" id="balance" v-else>{{ formatAmount(remainingSalary) }}</span>
       </div>
-      <input type="button" value="Retry loading" v-if="loadFailed" @click="loadData()" />
+      <input class="button-secondary" type="button" value="Retry loading" v-if="loadFailed" @click="loadData()" />
       <p v-if="storageError" role="alert" class="error-message">{{ storageError }}</p>
     </div>
 
@@ -31,7 +35,15 @@
       <p v-if="monthlyExpenses.length === 0">No spending for this month.</p>
       <ul class="category-list" v-else>
         <li v-for="(total, category) in categoryTotals" :key="category">
-          {{ category }} {{ formatAmount(total) }} {{ categoryPercentage(total).toFixed(1) + '%' }}
+          <div class="category-details">
+            <span>{{ category }}</span>
+            <span class="category-figures">
+              {{ formatAmount(total) }}
+              <span class="category-percentage">
+                {{ categoryPercentage(total).toFixed(1) }}%
+              </span>
+            </span>
+          </div>
           <div class="category-bar" aria-hidden="true">
             <div class="category-bar-fill"
               :style="{ width: categoryPercentage(total) + '%', backgroundColor: categoryColors[category] ?? '#6b7280' }">
@@ -66,7 +78,7 @@
               <td>{{ formatAmount(expense.amount) }}</td>
               <td>
                 <input type="button" value="Delete" class="table-row-delete" @click="deleteExpense(expense.id)" />
-                <input type="button" value="Edit" class="table-row-edit" @click="startEditExpense(expense.id)" />
+                <input type="button" value="Edit" class="button-secondary" @click="startEditExpense(expense.id)" />
               </td>
             </tr>
           </tbody>
@@ -568,18 +580,97 @@ export default defineComponent({
 
 </script>
 
+<style>
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #20252b;
+  background-color: #f3f5f7;
+}
+
+input,
+select,
+button {
+  font: inherit;
+}
+</style>
+
 <style scoped>
+#header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #d8dee5;
+}
+
+#header h1 {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1.25;
+}
+
+.month-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.month-control input {
+  padding: 8px 10px;
+  border: 1px solid #aeb8c4;
+  border-radius: 4px;
+  background-color: #fff;
+}
+
 .tracker-page {
   max-width: 1000px;
   margin-inline: auto;
   padding: 24px 16px;
 }
 
+.summary-label {
+  display: block;
+  margin-bottom: 6px;
+  color: #526071;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.summary-value {
+  display: block;
+  font-size: 24px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+#salary {
+  width: 100%;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid #aeb8c4;
+  border-radius: 4px;
+  background-color: #fff;
+}
+
+
 #main {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
   margin-block: 30px;
+  padding-block: 24px;
+  border-bottom: 1px solid #d8dee5;
 }
 
 #main>p {
@@ -589,6 +680,43 @@ export default defineComponent({
 .error-message {
   color: #b42318;
   margin-block: 8px;
+}
+
+.category-details {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 4px 16px;
+}
+
+.category-figures {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.category-percentage {
+  margin-left: 8px;
+  color: #526071;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+#spending-overall,
+#expense-list {
+  margin-top: 32px;
+}
+
+.tracker-page h2 {
+  margin: 0 0 16px;
+  font-size: 20px;
+  line-height: 1.3;
+}
+
+#add-expense-form {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #d8dee5;
 }
 
 #add-expense-form form {
@@ -603,15 +731,28 @@ export default defineComponent({
   min-width: 0;
 }
 
+.form-field label {
+  color: #344054;
+  font-size: 14px;
+  font-weight: 600;
+}
+
 .form-field input,
 .form-field select {
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
-  padding: 8px 10px;
-  border: 1px solid #044692;
+  border: 1px solid #aeb8c4;
   border-radius: 4px;
   font: inherit;
+  background-color: #fff;
+  padding: 10px 12px;
+}
+
+.form-field input:focus-visible,
+.form-field select:focus-visible {
+  outline: 2px solid #245fa5;
+  outline-offset: 2px;
 }
 
 .form-actions {
@@ -619,6 +760,12 @@ export default defineComponent({
   display: flex;
   flex-wrap: wrap;
   gap: 8px
+}
+
+#last-update {
+  margin-top: 24px;
+  color: #526071;
+  font-size: 13px;
 }
 
 #expense-table {
@@ -648,50 +795,37 @@ export default defineComponent({
   text-align: right;
 }
 
-.table-row-delete {
-  background-color: #e0000b;
-  color: rgb(230, 234, 236);
-  padding: 5px;
-  margin-right: 5px;
-  font: inherit;
-  border: 1px solid;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.table-row-delete:focus-visible {
-  outline: 2px solid #e0000b;
-  outline-offset: 2px;
-}
-
-.table-row-edit {
-  background-color: #286dbb;
-  color: rgb(230, 234, 236);
-  padding: 5px;
-  margin-left: 5px;
-  font: inherit;
-  border: 1px solid;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.table-row-edit:focus-visible {
-  outline: 2px solid #286dbb;
-  outline-offset: 2px;
-}
-
+.button-secondary,
+.table-row-delete,
 .form-actions input {
-  padding: 10px;
+  padding: 8px 12px;
   font: inherit;
-  border: 1px solid;
+  font-weight: 600;
+  border: 1px solid #aeb8c4;
   border-radius: 4px;
   cursor: pointer;
+}
+
+.button-secondary,
+.form-actions input[type="button"] {
+  background-color: #fff;
+  color: #344054;
+}
+
+#expense-table .button-secondary {
+  margin-left: 8px;
+}
+
+.table-row-delete {
+  background-color: #fff;
+  border-color: #b42318;
+  color: #b42318;
 }
 
 .form-actions input[type="submit"] {
-  background-color: #286dbb;
-  font: inherit;
-  color: rgb(230, 234, 236)
+  background-color: #245fa5;
+  border-color: #245fa5;
+  color: #fff;
 }
 
 .form-actions input[type="submit"]:focus-visible {
@@ -699,11 +833,6 @@ export default defineComponent({
   outline-offset: 2px;
 }
 
-.form-actions input[type="button"] {
-  background-color: #e0000b;
-  font: inherit;
-  color: rgb(230, 234, 236)
-}
 
 .form-actions input[type="button"]:focus-visible {
   outline: 2px solid #e0000b;
@@ -712,15 +841,38 @@ export default defineComponent({
 
 .table-scroll {
   overflow-x: auto;
+  background-color: #fff;
+  border: 1px solid #d8dee5;
+  border-radius: 4px;
 }
 
 #expense-table {
   min-width: 600px;
 }
 
+#expense-table thead {
+  background-color: #e9edf2;
+}
+
+#expense-table th {
+  color: #526071;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+#expense-table th,
+#expense-table td {
+  padding: 12px;
+}
+
+#expense-table tbody tr:hover {
+  background-color: #f5f8fb;
+}
+
 .category-list {
   list-style: none;
   padding: 0;
+  margin: 0;
 }
 
 .category-bar {
@@ -736,6 +888,15 @@ export default defineComponent({
 
 
 @media (max-width: 600px) {
+  #header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  #header h1 {
+    font-size: 22px;
+  }
+
   #main {
     grid-template-columns: 1fr;
     padding: 16px;
