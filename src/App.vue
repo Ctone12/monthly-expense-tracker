@@ -156,18 +156,15 @@ export default defineComponent({
 
     const storageError = ref<string>('')
 
+    const loadFailed = ref<boolean>(false)
+
     const expenseError = ref<string>('')
 
     const selectedMonth = ref<string>('2026-10')
 
     const lastUpdated = ref<string | null>(null)
 
-    const salariesByMonth = reactive<Record<string, number>>(
-      {
-        '2026-10': 250000,
-        '2026-11': 260000
-      },
-    )
+    const salariesByMonth = reactive<Record<string, number>>({})
 
     const monthlySalary = computed({
       get() {
@@ -196,36 +193,7 @@ export default defineComponent({
       amount: 0
     })
 
-    const expenses = reactive<Expense[]>([
-      {
-        id: 1,
-        date: '2026-10-01',
-        category: 'Food',
-        description: 'Lunch',
-        amount: 1000
-      },
-      {
-        id: 2,
-        date: '2026-10-02',
-        category: 'Transportation',
-        description: 'Train Ticket',
-        amount: 880
-      },
-      {
-        id: 3,
-        date: '2026-11-01',
-        category: 'Food',
-        description: 'Lunch',
-        amount: 2000
-      },
-      {
-        id: 4,
-        date: '2026-11-02',
-        category: 'Transportation',
-        description: 'Train Ticket',
-        amount: 1000
-      },
-    ])
+    const expenses = reactive<Expense[]>([])
 
     const monthlyExpenses = computed(() => {
       return expenses.filter(expense => {
@@ -360,6 +328,12 @@ export default defineComponent({
     }
 
     function saveData() {
+
+      if (loadFailed.value) {
+        storageError.value = 'Saving is blocked because saved data could not be loaded.'
+        return
+      }
+
       storageError.value = ''
 
       for (const salary of Object.values(salariesByMonth)) {
@@ -395,18 +369,22 @@ export default defineComponent({
         const parsedData: unknown = JSON.parse(result)
 
         if (typeof parsedData !== 'object' || parsedData === null || Array.isArray(parsedData)) {
+          loadFailed.value = true;
           storageError.value = 'Saved data is invalid and could not be loaded.';
           return;
         }
         if (!('expenses' in parsedData) || !('salariesByMonth' in parsedData)) {
+          loadFailed.value = true;
           storageError.value = 'Saved data is invalid and could not be loaded.';
           return;
         }
         if (!(Array.isArray(parsedData.expenses))) {
+          loadFailed.value = true;
           storageError.value = 'Saved data is invalid and could not be loaded.';
           return;
         }
         if (typeof parsedData.salariesByMonth !== 'object' || parsedData.salariesByMonth === null || Array.isArray(parsedData.salariesByMonth)) {
+          loadFailed.value = true;
           storageError.value = 'Saved data is invalid and could not be loaded.';
           return;
         }
@@ -415,11 +393,13 @@ export default defineComponent({
 
         for (const [month, salary] of Object.entries(parsedData.salariesByMonth)) {
           if (!(typeof salary === 'number') || !(Number.isSafeInteger(salary)) || salary < 0) {
+            loadFailed.value = true;
             storageError.value = 'Saved data is invalid and could not be loaded.';
             console.log('Rejected saved salary')
             return
           }
           if (!(/^\d{4}-(0[1-9]|1[0-2])$/.test(month))) {
+            loadFailed.value = true;
             storageError.value = 'Saved data is invalid and could not be loaded.';
             return
           }
@@ -430,6 +410,7 @@ export default defineComponent({
 
         if ('lastUpdated' in parsedData) {
           if (typeof parsedData.lastUpdated !== 'string') {
+            loadFailed.value = true;
             storageError.value = 'Saved data is invalid and could not be loaded.';
             return;
           }
@@ -437,6 +418,7 @@ export default defineComponent({
           const savedDate = new Date(parsedData.lastUpdated);
 
           if (Number.isNaN(savedDate.getTime())) {
+            loadFailed.value = true;
             storageError.value = 'Saved data is invalid and could not be loaded.';
             return;
           }
@@ -450,48 +432,58 @@ export default defineComponent({
         for (const expense of parsedData.expenses) {
           const item: unknown = expense;
           if ((Array.isArray(item)) || typeof item !== 'object' || item === null) {
+            loadFailed.value = true;
             storageError.value = 'Saved data is invalid and could not be loaded.';
             console.log('Invalid data found', item)
             return
           }
           if (!('id' in item) || !('date' in item) || !('category' in item) || !('description' in item) || !('amount' in item)) {
+            loadFailed.value = true;
             storageError.value = 'Saved data is invalid and could not be loaded.';
             console.log('Expens field is missing', item)
             return
           }
           if (typeof item.amount !== 'number' || !(Number.isSafeInteger(item.amount)) || item.amount <= 0) {
+            loadFailed.value = true;
             storageError.value = 'Saved data is invalid and could not be loaded.';
             return
           }
           if (typeof item.description !== 'string' || item.description.trim() === '') {
+            loadFailed.value = true;
             storageError.value = 'Saved data is invalid and could not be loaded.';
             return
           }
           if (typeof item.category !== 'string' || !(categories.includes(item.category))) {
+            loadFailed.value = true;
             storageError.value = 'Saved data is invalid and could not be loaded.';
             return
           }
           if (typeof item.id !== 'number' || !(Number.isSafeInteger(item.id)) || item.id <= 0) {
+            loadFailed.value = true;
             storageError.value = 'Saved data is invalid and could not be loaded.';
             return
           }
           if (seenIds.has(item.id)) {
+            loadFailed.value = true;
             storageError.value = 'Saved data is invalid and could not be loaded.';
             return
           } else {
             seenIds.add(item.id)
           }
           if (typeof item.date !== 'string' || !(/^\d{4}-\d{2}-\d{2}$/.test(item.date))) {
+            loadFailed.value = true;
             storageError.value = 'Saved data is invalid and could not be loaded.';
             return
           }
           const expenseDate = new Date(item.date)
           if (Number.isNaN(expenseDate.getTime())) {
+            loadFailed.value = true;
             storageError.value = 'Saved data is invalid and could not be loaded.';
             return
           }
           const normalizedDate = expenseDate.toISOString().slice(0, 10);
           if (normalizedDate !== item.date) {
+            loadFailed.value = true;
             storageError.value = 'Saved data is invalid and could not be loaded.';
             return
           }
@@ -513,6 +505,7 @@ export default defineComponent({
         console.log('loadedExpenses', loadedExpenses)
         console.log('ParsedData', parsedData)
       } catch (error) {
+        loadFailed.value = true;
         storageError.value = 'Saved data could not be loaded.'
         console.error('Saved data could not be loaded.', error)
       }
