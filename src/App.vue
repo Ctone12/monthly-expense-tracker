@@ -828,14 +828,10 @@ button {
   color: #fff;
 }
 
-.form-actions input[type="submit"]:focus-visible {
-  outline: 2px solid #286dbb;
-  outline-offset: 2px;
-}
-
-
-.form-actions input[type="button"]:focus-visible {
-  outline: 2px solid #e0000b;
+.button-secondary:focus-visible,
+.table-row-delete:focus-visible,
+.form-actions input:focus-visible {
+  outline: 2px solid #245fa5;
   outline-offset: 2px;
 }
 
